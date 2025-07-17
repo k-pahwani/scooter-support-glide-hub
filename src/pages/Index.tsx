@@ -1,10 +1,24 @@
 
-import { Phone, MessageCircle, Mail, Search, FileText, Wrench } from "lucide-react";
+import { Phone, MessageCircle, Mail, Search, FileText, Wrench, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import OTPLogin from "@/components/auth/OTPLogin";
 
 const Index = () => {
+  const { isAuthenticated, user, login, logout } = useAuth();
+
+  const handleLoginSuccess = () => {
+    // This will be called from OTPLogin component with the phone number
+    // For demo purposes, we'll use a placeholder number
+    login("+91 9876543210");
+  };
+
+  if (!isAuthenticated) {
+    return <OTPLogin onLoginSuccess={handleLoginSuccess} />;
+  }
+
   const supportOptions = [
     {
       icon: MessageCircle,
@@ -58,6 +72,20 @@ const Index = () => {
               <h1 className="text-lg font-bold">VoltRide</h1>
               <p className="text-xs opacity-90">Support Center</p>
             </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="text-right">
+              <p className="text-xs opacity-90">Welcome</p>
+              <p className="text-sm font-medium">{user?.phone}</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={logout}
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </header>
