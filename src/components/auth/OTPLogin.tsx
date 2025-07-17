@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Phone, ArrowRight, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OTPLoginProps {
   onLoginSuccess: () => void;
@@ -29,23 +30,26 @@ const OTPLogin = ({ onLoginSuccess }: OTPLoginProps) => {
       return;
     }
 
+    // Format phone number to ensure it has a + prefix
+    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+
     setIsLoading(true);
     try {
-      // In a real implementation with Supabase, you would call:
-      // const { error } = await supabase.auth.signInWithOtp({ phone: phoneNumber })
-      
-      // For demo purposes, simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: formattedPhone,
+      });
+
+      if (error) throw error;
       
       toast({
         title: "OTP Sent",
         description: "Please check your mobile for the verification code",
       });
       setStep('otp');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to send OTP. Please try again.",
+        description: error.message || "Failed to send OTP. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -65,21 +69,25 @@ const OTPLogin = ({ onLoginSuccess }: OTPLoginProps) => {
 
     setIsLoading(true);
     try {
-      // In a real implementation with Supabase, you would call:
-      // const { error } = await supabase.auth.verifyOtp({ phone: phoneNumber, token: otp })
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
       
-      // For demo purposes, simulate verification
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.verifyOtp({
+        phone: formattedPhone,
+        token: otp,
+        type: 'sms',
+      });
+
+      if (error) throw error;
       
       toast({
         title: "Login Successful",
         description: "Welcome to VoltRide Support!",
       });
       onLoginSuccess();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
+        description: error.message || "Invalid OTP. Please try again.",
         variant: "destructive"
       });
     } finally {
