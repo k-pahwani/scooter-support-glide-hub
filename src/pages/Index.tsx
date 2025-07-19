@@ -38,14 +38,16 @@ const Index = () => {
         .eq('user_id', user.id)
         .eq('type', 'user')
         .order('created_at', { ascending: false })
-        .limit(4);
+        .limit(20); // Get more to filter for uniqueness
 
       if (error) throw error;
       
-      const questions = data?.map(msg => msg.content) || [];
+      // Get unique questions and limit to 4
+      const allQuestions = data?.map(msg => msg.content) || [];
+      const uniqueQuestions = [...new Set(allQuestions)].slice(0, 4);
       
       // Fallback to default questions if no recent questions
-      if (questions.length === 0) {
+      if (uniqueQuestions.length === 0) {
         setRecentQuestions([
           "Battery not charging",
           "Speed issues", 
@@ -53,7 +55,16 @@ const Index = () => {
           "Display not working"
         ]);
       } else {
-        setRecentQuestions(questions);
+        // Fill with defaults if we have less than 4 unique questions
+        const defaults = ["Battery not charging", "Speed issues", "Brake problems", "Display not working"];
+        const combined = [...uniqueQuestions];
+        for (const defaultQ of defaults) {
+          if (combined.length >= 4) break;
+          if (!combined.includes(defaultQ)) {
+            combined.push(defaultQ);
+          }
+        }
+        setRecentQuestions(combined.slice(0, 4));
       }
     } catch (error) {
       console.error('Error fetching recent questions:', error);
@@ -170,14 +181,6 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input 
-            placeholder="Search for help..." 
-            className="pl-10 h-12 text-base"
-          />
-        </div>
 
         {/* Quick Actions */}
         <section>
