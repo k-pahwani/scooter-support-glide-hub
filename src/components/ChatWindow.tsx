@@ -64,9 +64,10 @@ const predefinedFAQs: FAQ[] = [
 interface ChatWindowProps {
   onClose: () => void;
   onViewSubmissions?: () => void;
+  initialQuestion?: string;
 }
 
-const ChatWindow = ({ onClose, onViewSubmissions }: ChatWindowProps) => {
+const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion }: ChatWindowProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -134,6 +135,13 @@ const ChatWindow = ({ onClose, onViewSubmissions }: ChatWindowProps) => {
 
     loadMessages();
   }, [user?.id, sessionId]);
+
+  // Handle initial question
+  useEffect(() => {
+    if (initialQuestion && initialQuestion.trim()) {
+      setInputValue(initialQuestion);
+    }
+  }, [initialQuestion]);
 
   const saveMessages = async (messagesToSave: Message[]) => {
     if (!user?.id) return;

@@ -6,16 +6,70 @@ import { useAuth } from "@/contexts/AuthContext";
 import OTPLogin from "@/components/auth/OTPLogin";
 import ChatWindow from "@/components/ChatWindow";
 import SubmittedQueries from "@/components/SubmittedQueries";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
   const [showChat, setShowChat] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
+  const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
+  const [initialQuestion, setInitialQuestion] = useState<string>("");
 
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
     // Auth state is automatically updated via the AuthProvider
+  };
+
+  // Fetch recent questions from database
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchRecentQuestions();
+    }
+  }, [isAuthenticated, user]);
+
+  const fetchRecentQuestions = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('content')
+        .eq('user_id', user.id)
+        .eq('type', 'user')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+      
+      const questions = data?.map(msg => msg.content) || [];
+      
+      // Fallback to default questions if no recent questions
+      if (questions.length === 0) {
+        setRecentQuestions([
+          "Battery not charging",
+          "Speed issues", 
+          "Brake problems",
+          "Display not working"
+        ]);
+      } else {
+        setRecentQuestions(questions);
+      }
+    } catch (error) {
+      console.error('Error fetching recent questions:', error);
+      // Fallback to default questions
+      setRecentQuestions([
+        "Battery not charging",
+        "Speed issues",
+        "Brake problems", 
+        "Display not working"
+      ]);
+    }
+  };
+
+  const handleQuickActionClick = (question: string) => {
+    setInitialQuestion(question);
+    setShowChat(true);
   };
 
   if (!isAuthenticated) {
@@ -25,11 +79,15 @@ const Index = () => {
   if (showChat) {
     return (
       <ChatWindow 
-        onClose={() => setShowChat(false)} 
+        onClose={() => {
+          setShowChat(false);
+          setInitialQuestion("");
+        }} 
         onViewSubmissions={() => {
           setShowChat(false);
           setShowSubmissions(true);
         }}
+        initialQuestion={initialQuestion}
       />
     );
   }
@@ -56,12 +114,6 @@ const Index = () => {
     }
   ];
 
-  const quickActions = [
-    "Battery not charging",
-    "Speed issues",
-    "Brake problems", 
-    "Display not working"
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,13 +185,14 @@ const Index = () => {
             Quick Help
           </h2>
           <div className="grid grid-cols-2 gap-2">
-            {quickActions.map((action, index) => (
+            {recentQuestions.map((question, index) => (
               <Button 
                 key={index}
                 variant="outline" 
                 className="h-auto p-3 text-xs text-left justify-start"
+                onClick={() => handleQuickActionClick(question)}
               >
-                {action}
+                {question.length > 30 ? question.substring(0, 30) + "..." : question}
               </Button>
             ))}
           </div>
