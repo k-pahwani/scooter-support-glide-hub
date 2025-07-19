@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import OTPLogin from "@/components/auth/OTPLogin";
 import ChatWindow from "@/components/ChatWindow";
+import SubmittedQueries from "@/components/SubmittedQueries";
 import { useState } from "react";
 
 const Index = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
   const [showChat, setShowChat] = useState(false);
+  const [showSubmissions, setShowSubmissions] = useState(false);
 
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
@@ -21,7 +23,19 @@ const Index = () => {
   }
 
   if (showChat) {
-    return <ChatWindow onClose={() => setShowChat(false)} />;
+    return (
+      <ChatWindow 
+        onClose={() => setShowChat(false)} 
+        onViewSubmissions={() => {
+          setShowChat(false);
+          setShowSubmissions(true);
+        }}
+      />
+    );
+  }
+
+  if (showSubmissions) {
+    return <SubmittedQueries onClose={() => setShowSubmissions(false)} />;
   }
 
   const supportOptions = [

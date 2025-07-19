@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          session_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          session_id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          session_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      submitted_queries: {
+        Row: {
+          bot_response: string
+          created_at: string
+          id: string
+          original_query: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bot_response: string
+          created_at?: string
+          id?: string
+          original_query: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bot_response?: string
+          created_at?: string
+          id?: string
+          original_query?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
