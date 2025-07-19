@@ -1,15 +1,15 @@
-import { Phone, MessageCircle, Mail, Search, FileText, Wrench, LogOut, HelpCircle } from "lucide-react";
+import { Phone, MessageCircle, Mail, Search, LogOut, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import OTPLogin from "@/components/auth/OTPLogin";
-import QuestionAnswer from "@/components/QuestionAnswer";
+import ChatWindow from "@/components/ChatWindow";
 import { useState } from "react";
 
 const Index = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
-  const [showQA, setShowQA] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
@@ -20,75 +20,25 @@ const Index = () => {
     return <OTPLogin onLoginSuccess={handleLoginSuccess} />;
   }
 
-  if (showQA) {
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="bg-primary text-primary-foreground p-4 shadow-sm">
-          <div className="max-w-md mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowQA(false)}
-                className="text-primary-foreground hover:bg-primary-foreground/10"
-              >
-                ← Back
-              </Button>
-              <div>
-                <h1 className="text-lg font-bold">Ask Questions</h1>
-                <p className="text-xs opacity-90">Get instant answers</p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={logout}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </header>
-
-        {/* Q&A Content */}
-        <main className="max-w-md mx-auto p-4">
-          <QuestionAnswer />
-        </main>
-      </div>
-    );
+  if (showChat) {
+    return <ChatWindow onClose={() => setShowChat(false)} />;
   }
 
   const supportOptions = [
     {
       icon: MessageCircle,
       title: "Live Chat",
-      description: "Get instant help from our support team",
       action: "Start Chat"
     },
     {
       icon: Phone,
-      title: "Call Support",
-      description: "Speak directly with a technician",
+      title: "Call Support", 
       action: "Call Now"
     },
     {
       icon: Mail,
       title: "Email Support",
-      description: "Send us your questions and concerns",
       action: "Send Email"
-    },
-    {
-      icon: FileText,
-      title: "User Manual",
-      description: "Download guides and documentation",
-      action: "View Guides"
-    },
-    {
-      icon: Wrench,
-      title: "Service Request",
-      description: "Schedule a repair or maintenance",
-      action: "Book Service"
     }
   ];
 
@@ -145,7 +95,7 @@ const Index = () => {
               </div>
               <Button 
                 size="sm" 
-                onClick={() => setShowQA(true)}
+                onClick={() => setShowChat(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Ask Now
@@ -186,24 +136,12 @@ const Index = () => {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Get Support
           </h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-3">
             {supportOptions.map((option, index) => (
-              <Card key={index} className="border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-                      <option.icon className="w-5 h-5 text-accent-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm">{option.title}</h3>
-                      <p className="text-xs text-muted-foreground">{option.description}</p>
-                    </div>
-                    <Button size="sm" variant="ghost" className="text-xs">
-                      {option.action}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <Button key={index} variant="outline" className="h-16 flex-col gap-1">
+                <option.icon className="w-4 h-4" />
+                <span className="text-xs">{option.title}</span>
+              </Button>
             ))}
           </div>
         </section>
