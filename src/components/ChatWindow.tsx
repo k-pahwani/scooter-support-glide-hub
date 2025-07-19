@@ -65,13 +65,15 @@ interface ChatWindowProps {
   onClose: () => void;
   onViewSubmissions?: () => void;
   initialQuestion?: string;
+  sessionId?: string;
 }
 
-const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion }: ChatWindowProps) => {
+const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: providedSessionId }: ChatWindowProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(providedSessionId || crypto.randomUUID());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [sessionId] = useState(() => crypto.randomUUID());
   const [lastBotResponse, setLastBotResponse] = useState<{ query: string; response: string } | null>(null);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -79,62 +81,66 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion }: ChatWindowP
 
   // Load existing messages on mount
   useEffect(() => {
-    const loadMessages = async () => {
-      if (!user?.id) return;
+    if (providedSessionId) {
+      setSessionId(providedSessionId);
+    }
+    loadMessages();
+  }, [user?.id, providedSessionId]);
 
-      try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('session_id', sessionId)
-          .order('created_at', { ascending: true });
+  const loadMessages = async () => {
+    if (!user?.id) return;
 
-        if (error) throw error;
+    try {
+      const currentSessionId = providedSessionId || sessionId;
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('session_id', currentSessionId)
+        .order('created_at', { ascending: true });
 
-        if (data && data.length > 0) {
-          const loadedMessages = data.map(msg => ({
-            id: msg.id,
-            type: msg.type as 'user' | 'bot' | 'predefined',
-            content: msg.content,
-            timestamp: new Date(msg.created_at),
-            session_id: msg.session_id
-          }));
-          setMessages(loadedMessages);
-          return;
-        }
-      } catch (error) {
-        console.error('Error loading messages:', error);
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const loadedMessages = data.map(msg => ({
+          id: msg.id,
+          type: msg.type as 'user' | 'bot' | 'predefined',
+          content: msg.content,
+          timestamp: new Date(msg.created_at),
+          session_id: msg.session_id
+        }));
+        setMessages(loadedMessages);
+        return;
       }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
 
-      // If no existing messages, initialize with welcome and predefined questions
-      const welcomeMessage: Message = {
-        id: 'welcome',
-        type: 'bot',
-        content: "Hi! I'm here to help with your VoltRide scooter questions. Here are our most popular topics:",
-        timestamp: new Date(),
-        session_id: sessionId
-      };
-
-      const predefinedMessages: Message[] = predefinedFAQs.slice(0, 5).map((faq, index) => ({
-        id: `predefined-${index}`,
-        type: 'predefined',
-        content: faq.question,
-        timestamp: new Date(),
-        session_id: sessionId
-      }));
-
-      const initialMessages = [welcomeMessage, ...predefinedMessages];
-      setMessages(initialMessages);
-
-      // Save initial messages to database
-      if (user?.id) {
-        await saveMessages(initialMessages);
-      }
+    // If no existing messages, initialize with welcome and predefined questions
+    const welcomeMessage: Message = {
+      id: 'welcome',
+      type: 'bot',
+      content: "Hi! I'm here to help with your VoltRide scooter questions. Here are our most popular topics:",
+      timestamp: new Date(),
+      session_id: sessionId
     };
 
-    loadMessages();
-  }, [user?.id, sessionId]);
+    const predefinedMessages: Message[] = predefinedFAQs.slice(0, 5).map((faq, index) => ({
+      id: `predefined-${index}`,
+      type: 'predefined',
+      content: faq.question,
+      timestamp: new Date(),
+      session_id: sessionId
+    }));
+
+    const initialMessages = [welcomeMessage, ...predefinedMessages];
+    setMessages(initialMessages);
+
+    // Save initial messages to database
+    if (user?.id) {
+      await saveMessages(initialMessages);
+    }
+  };
 
   // Handle initial question
   useEffect(() => {

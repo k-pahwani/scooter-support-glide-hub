@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import OTPLogin from "@/components/auth/OTPLogin";
 import ChatWindow from "@/components/ChatWindow";
 import SubmittedQueries from "@/components/SubmittedQueries";
+import ChatHistory from "@/components/ChatHistory";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,6 +14,7 @@ const Index = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
   const [showChat, setShowChat] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
+  const [showChatHistory, setShowChatHistory] = useState(false);
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [initialQuestion, setInitialQuestion] = useState<string>("");
 
@@ -103,6 +105,10 @@ const Index = () => {
     );
   }
 
+  if (showChatHistory) {
+    return <ChatHistory onClose={() => setShowChatHistory(false)} />;
+  }
+
   if (showSubmissions) {
     return <SubmittedQueries onClose={() => setShowSubmissions(false)} />;
   }
@@ -110,8 +116,9 @@ const Index = () => {
   const supportOptions = [
     {
       icon: MessageCircle,
-      title: "Live Chat",
-      action: "Start Chat"
+      title: "Chat History",
+      action: "View History",
+      onClick: () => setShowChatHistory(true)
     },
     {
       icon: Phone,
@@ -208,7 +215,12 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-3 gap-3">
             {supportOptions.map((option, index) => (
-              <Button key={index} variant="outline" className="h-16 flex-col gap-1">
+              <Button 
+                key={index} 
+                variant="outline" 
+                className="h-16 flex-col gap-1"
+                onClick={option.onClick}
+              >
                 <option.icon className="w-4 h-4" />
                 <span className="text-xs">{option.title}</span>
               </Button>
