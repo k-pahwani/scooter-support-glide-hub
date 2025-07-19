@@ -6,6 +6,7 @@ import { Send, Upload, X, ThumbsDown, List } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import ChatFeedback from "@/components/ChatFeedback";
 
 interface FAQ {
   id: string;
@@ -75,6 +76,7 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
   const [sessionId, setSessionId] = useState(providedSessionId || crypto.randomUUID());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [lastBotResponse, setLastBotResponse] = useState<{ query: string; response: string } | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -333,6 +335,19 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
     }
   };
 
+  const handleCloseChat = () => {
+    if (messages.length > 1) { // Only show feedback if there was actual conversation
+      setShowFeedback(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleFeedbackComplete = () => {
+    setShowFeedback(false);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
@@ -347,7 +362,7 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
               <List className="w-4 h-4" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={handleCloseChat}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -433,6 +448,14 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
           accept="image/*,application/pdf,text/plain"
         />
       </div>
+
+      {/* Feedback Dialog */}
+      <ChatFeedback
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
+        sessionId={sessionId}
+        onComplete={handleFeedbackComplete}
+      />
     </div>
   );
 };
