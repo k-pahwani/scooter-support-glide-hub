@@ -1,13 +1,15 @@
-
-import { Phone, MessageCircle, Mail, Search, FileText, Wrench, LogOut } from "lucide-react";
+import { Phone, MessageCircle, Mail, Search, FileText, Wrench, LogOut, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import OTPLogin from "@/components/auth/OTPLogin";
+import QuestionAnswer from "@/components/QuestionAnswer";
+import { useState } from "react";
 
 const Index = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
+  const [showQA, setShowQA] = useState(false);
 
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
@@ -16,6 +18,45 @@ const Index = () => {
 
   if (!isAuthenticated) {
     return <OTPLogin onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (showQA) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-primary text-primary-foreground p-4 shadow-sm">
+          <div className="max-w-md mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowQA(false)}
+                className="text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                ← Back
+              </Button>
+              <div>
+                <h1 className="text-lg font-bold">Ask Questions</h1>
+                <p className="text-xs opacity-90">Get instant answers</p>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={logout}
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
+        </header>
+
+        {/* Q&A Content */}
+        <main className="max-w-md mx-auto p-4">
+          <QuestionAnswer />
+        </main>
+      </div>
+    );
   }
 
   const supportOptions = [
@@ -91,6 +132,28 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="max-w-md mx-auto p-4 space-y-6">
+        {/* Ask Questions Feature */}
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <HelpCircle className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm text-blue-900">Ask Questions</h3>
+                <p className="text-xs text-blue-700">Get instant answers about your scooter</p>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={() => setShowQA(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Ask Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
