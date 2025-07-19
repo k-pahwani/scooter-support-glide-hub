@@ -67,9 +67,10 @@ interface ChatWindowProps {
   onViewSubmissions?: () => void;
   initialQuestion?: string;
   sessionId?: string;
+  isHistoryView?: boolean;
 }
 
-const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: providedSessionId }: ChatWindowProps) => {
+const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: providedSessionId, isHistoryView = false }: ChatWindowProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -118,29 +119,31 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
       console.error('Error loading messages:', error);
     }
 
-    // If no existing messages, initialize with welcome and predefined questions
-    const welcomeMessage: Message = {
-      id: 'welcome',
-      type: 'bot',
-      content: "Hi! I'm here to help with your VoltRide scooter questions. Here are our most popular topics:",
-      timestamp: new Date(),
-      session_id: sessionId
-    };
+    // If no existing messages and not in history view, initialize with welcome and predefined questions
+    if (!isHistoryView) {
+      const welcomeMessage: Message = {
+        id: 'welcome',
+        type: 'bot',
+        content: "Hi! I'm here to help with your VoltRide scooter questions. Here are our most popular topics:",
+        timestamp: new Date(),
+        session_id: sessionId
+      };
 
-    const predefinedMessages: Message[] = predefinedFAQs.slice(0, 5).map((faq, index) => ({
-      id: `predefined-${index}`,
-      type: 'predefined',
-      content: faq.question,
-      timestamp: new Date(),
-      session_id: sessionId
-    }));
+      const predefinedMessages: Message[] = predefinedFAQs.slice(0, 5).map((faq, index) => ({
+        id: `predefined-${index}`,
+        type: 'predefined',
+        content: faq.question,
+        timestamp: new Date(),
+        session_id: sessionId
+      }));
 
-    const initialMessages = [welcomeMessage, ...predefinedMessages];
-    setMessages(initialMessages);
+      const initialMessages = [welcomeMessage, ...predefinedMessages];
+      setMessages(initialMessages);
 
-    // Save initial messages to database
-    if (user?.id) {
-      await saveMessages(initialMessages);
+      // Save initial messages to database
+      if (user?.id) {
+        await saveMessages(initialMessages);
+      }
     }
   };
 
@@ -379,7 +382,8 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
               <Button
                 variant="outline"
                 className="max-w-xs text-left h-auto p-3"
-                onClick={() => handlePredefinedClick(message.content)}
+                onClick={() => !isHistoryView && handlePredefinedClick(message.content)}
+                disabled={isHistoryView}
               >
                 {message.content}
               </Button>
@@ -393,7 +397,7 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
                     </p>
                   </CardContent>
                 </Card>
-                {message.type === 'bot' && lastBotResponse && (
+                {message.type === 'bot' && lastBotResponse && !isHistoryView && (
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -411,43 +415,45 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 border-t">
-        {selectedFile && (
-          <div className="mb-2 flex items-center justify-between bg-accent/50 p-2 rounded">
-            <span className="text-sm">{selectedFile.name}</span>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
-              <X className="w-3 h-3" />
+      {/* Input Area - Hidden in history view */}
+      {!isHistoryView && (
+        <div className="p-4 border-t">
+          {selectedFile && (
+            <div className="mb-2 flex items-center justify-between bg-accent/50 p-2 rounded">
+              <span className="text-sm">{selectedFile.name}</span>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('chat-file-upload')?.click()}
+            >
+              <Upload className="w-4 h-4" />
+            </Button>
+            <Input
+              placeholder="Type your question..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1"
+            />
+            <Button onClick={handleSendMessage} disabled={!inputValue.trim()}>
+              <Send className="w-4 h-4" />
             </Button>
           </div>
-        )}
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => document.getElementById('chat-file-upload')?.click()}
-          >
-            <Upload className="w-4 h-4" />
-          </Button>
-          <Input
-            placeholder="Type your question..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1"
+          <input
+            id="chat-file-upload"
+            type="file"
+            onChange={handleFileUpload}
+            className="hidden"
+            accept="image/*,application/pdf,text/plain"
           />
-          <Button onClick={handleSendMessage} disabled={!inputValue.trim()}>
-            <Send className="w-4 h-4" />
-          </Button>
         </div>
-        <input
-          id="chat-file-upload"
-          type="file"
-          onChange={handleFileUpload}
-          className="hidden"
-          accept="image/*,application/pdf,text/plain"
-        />
-      </div>
+      )}
 
       {/* Feedback Dialog */}
       <ChatFeedback

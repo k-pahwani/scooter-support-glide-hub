@@ -103,6 +103,7 @@ const ChatHistory = ({ onClose }: ChatHistoryProps) => {
       <ChatWindow
         onClose={() => setSelectedSession(null)}
         sessionId={selectedSession}
+        isHistoryView={true}
       />
     );
   }
