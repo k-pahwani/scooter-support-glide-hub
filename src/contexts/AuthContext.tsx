@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,6 +39,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [authType, setAuthType] = useState<'user' | 'admin' | null>(null);
+
+  // Memoize adminData to prevent unnecessary re-renders
+  const memoizedAdminData = useMemo(() => adminData, [adminData?.id, adminData?.username]);
 
   useEffect(() => {
     // Check for existing admin session
@@ -120,7 +123,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       isAuthenticated, 
       user, 
       session, 
-      adminData, 
+      adminData: memoizedAdminData, 
       authType, 
       login, 
       adminLogin, 
