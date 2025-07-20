@@ -19,7 +19,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
 
   const handleLogout = () => {
     logoutAdmin();
-    onClose();
+    // Don't call onClose here as the admin will automatically be redirected to login
   };
 
 

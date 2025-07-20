@@ -110,6 +110,11 @@ const Index = () => {
   // Check if either regular auth or admin auth is active
   const isUserLoggedIn = isAuthenticated || isAdminAuthenticated;
 
+  // If admin is authenticated, redirect directly to admin panel
+  if (isAdminAuthenticated) {
+    return <AdminPanel onClose={() => setShowAdmin(false)} />;
+  }
+
   if (!isUserLoggedIn) {
     if (loginType === 'selection') {
       return (
