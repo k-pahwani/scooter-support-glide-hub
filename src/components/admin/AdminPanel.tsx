@@ -2,10 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, List, ArrowLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Settings, Plus, List, ArrowLeft, X, Loader2 } from 'lucide-react';
 import DomainQuestionManager from './DomainQuestionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PredefinedQuestion {
   id: string;
@@ -27,7 +34,17 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [currentView, setCurrentView] = useState<AdminView>('main');
   const [questions, setQuestions] = useState<PredefinedQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    question: '',
+    answer: '',
+    category: '',
+    keywords: [] as string[]
+  });
+  const [keywordInput, setKeywordInput] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (currentView === 'main') {
@@ -55,6 +72,77 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateQuestion = async () => {
+    if (!formData.question || !formData.answer || !formData.category) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const { error } = await supabase
+        .from('domain_questions')
+        .insert({
+          question: formData.question,
+          answer: formData.answer,
+          category: formData.category,
+          keywords: formData.keywords.length > 0 ? formData.keywords : null,
+          created_by: user?.id || '0f2dbedd-e48a-4d75-a7c3-557602ba2dc3',
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Predefined question created successfully",
+      });
+
+      // Reset form and close modal
+      setFormData({
+        question: '',
+        answer: '',
+        category: '',
+        keywords: []
+      });
+      setKeywordInput('');
+      setIsModalOpen(false);
+      
+      // Refresh the questions list
+      fetchPredefinedQuestions();
+    } catch (error) {
+      console.error('Error creating question:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create predefined question",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const addKeyword = () => {
+    if (keywordInput.trim() && !formData.keywords.includes(keywordInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        keywords: [...prev.keywords, keywordInput.trim()]
+      }));
+      setKeywordInput('');
+    }
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setFormData(prev => ({
+      ...prev,
+      keywords: prev.keywords.filter(k => k !== keyword)
+    }));
   };
 
   if (currentView === 'questions') {
@@ -125,6 +213,119 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-muted-foreground">Recent Questions ({questions.length})</p>
+                  <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline">
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add New
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Add New Predefined Question</DialogTitle>
+                        <DialogDescription>
+                          Create a new predefined question with answer and category details.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="question">Question *</Label>
+                          <Textarea
+                            id="question"
+                            placeholder="Enter the question..."
+                            value={formData.question}
+                            onChange={(e) => setFormData(prev => ({ ...prev, question: e.target.value }))}
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="answer">Answer *</Label>
+                          <Textarea
+                            id="answer"
+                            placeholder="Enter the answer..."
+                            value={formData.answer}
+                            onChange={(e) => setFormData(prev => ({ ...prev, answer: e.target.value }))}
+                            rows={4}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="category">Category *</Label>
+                          <Select 
+                            value={formData.category} 
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="General">General</SelectItem>
+                              <SelectItem value="Technical">Technical</SelectItem>
+                              <SelectItem value="Billing">Billing</SelectItem>
+                              <SelectItem value="Account">Account</SelectItem>
+                              <SelectItem value="Support">Support</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="keywords">Keywords (Optional)</Label>
+                          <div className="flex space-x-2">
+                            <Input
+                              id="keywords"
+                              placeholder="Add keyword..."
+                              value={keywordInput}
+                              onChange={(e) => setKeywordInput(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                            />
+                            <Button type="button" onClick={addKeyword} size="sm">
+                              Add
+                            </Button>
+                          </div>
+                          {formData.keywords.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {formData.keywords.map((keyword) => (
+                                <Badge key={keyword} variant="secondary" className="text-xs">
+                                  {keyword}
+                                  <X 
+                                    className="w-3 h-3 ml-1 cursor-pointer" 
+                                    onClick={() => removeKeyword(keyword)}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end space-x-2 pt-4">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsModalOpen(false)}
+                            disabled={isCreating}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="button" 
+                            onClick={handleCreateQuestion}
+                            disabled={isCreating}
+                          >
+                            {isCreating ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Creating...
+                              </>
+                            ) : (
+                              'Create Question'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 {questions.map((question) => (
                   <div key={question.id} className="p-3 border rounded-lg bg-muted/30">
