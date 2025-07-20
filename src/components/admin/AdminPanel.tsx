@@ -7,13 +7,14 @@ import DomainQuestionManager from './DomainQuestionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface PredefinedMessage {
+interface PredefinedQuestion {
   id: string;
-  content: string;
+  question: string;
+  answer: string;
+  category: string;
   created_at: string;
-  user_id: string;
-  session_id: string;
-  type: string;
+  created_by: string;
+  is_active: boolean;
 }
 
 interface AdminPanelProps {
@@ -24,7 +25,7 @@ type AdminView = 'main' | 'questions';
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [currentView, setCurrentView] = useState<AdminView>('main');
-  const [questions, setQuestions] = useState<PredefinedMessage[]>([]);
+  const [questions, setQuestions] = useState<PredefinedQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -37,11 +38,10 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const fetchPredefinedQuestions = async () => {
     try {
       const { data, error } = await supabase
-        .from('chat_messages')
+        .from('domain_questions')
         .select('*')
-        .eq('type', 'predefined')
-        .order('created_at', { ascending: false })
-        .limit(10); // Show first 10 questions
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setQuestions(data || []);
@@ -130,9 +130,9 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                   <div key={question.id} className="p-3 border rounded-lg bg-muted/30">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{question.content}</p>
+                        <p className="text-sm font-medium">{question.question}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Added {new Date(question.created_at).toLocaleDateString()}
+                          Category: {question.category} • Added {new Date(question.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
