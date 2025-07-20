@@ -29,7 +29,9 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
       });
 
       if (error) throw error;
-
+      console.log("Login input:", { email, password });
+      console.log("Error:", { data, error });
+      
       if (data.user) {
         toast({
           title: "Login successful",
