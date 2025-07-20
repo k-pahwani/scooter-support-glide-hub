@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Shield } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -13,36 +13,36 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { loginAdmin } = useAdminAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      console.log("Login input:", { email, password });
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      console.log("Supabase response:", { data, error });
-      if (error) throw error;
-
-      if (data.user) {
+      const result = await loginAdmin(username, password);
+      
+      if (result.success) {
         toast({
           title: "Login successful",
           description: "Welcome to the admin panel",
         });
         onLoginSuccess();
+      } else {
+        toast({
+          title: "Login failed",
+          description: result.error || "Invalid credentials",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
-      console.log("Supabase response:", { error });
       toast({
         title: "Login failed",
-        description: error.message || "Invalid credentials",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -72,13 +72,13 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@example.com"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
                 required
                 disabled={loading}
               />

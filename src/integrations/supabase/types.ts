@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_accounts: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          password_hash: string
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          password_hash: string
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          password_hash?: string
+          username?: string
+        }
+        Relationships: []
+      }
       chat_feedback: {
         Row: {
           created_at: string
@@ -181,6 +205,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_admin: {
+        Args: { username_param: string; password_param: string }
+        Returns: {
+          admin_id: string
+          is_valid: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
