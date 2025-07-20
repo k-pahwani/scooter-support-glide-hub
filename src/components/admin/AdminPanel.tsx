@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Plus, List, ArrowLeft, X, Loader2 } from 'lucide-react';
+import { Settings, Plus, List, ArrowLeft, X, Loader2, MessageCircle, History } from 'lucide-react';
 import DomainQuestionManager from './DomainQuestionManager';
+import AdminChatHistory from './AdminChatHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +29,7 @@ interface AdminPanelProps {
   onClose: () => void;
 }
 
-type AdminView = 'main' | 'questions';
+type AdminView = 'main' | 'questions' | 'chat-history';
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [currentView, setCurrentView] = useState<AdminView>('main');
@@ -168,6 +169,15 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   if (currentView === 'questions') {
     return (
       <DomainQuestionManager 
+        onBack={() => setCurrentView('main')}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (currentView === 'chat-history') {
+    return (
+      <AdminChatHistory 
         onBack={() => setCurrentView('main')}
         onClose={onClose}
       />
@@ -371,6 +381,32 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 )}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <MessageCircle className="w-5 h-5" />
+                <span>Chat History</span>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              View and manage all user conversations across the platform.
+            </p>
+            
+            <div className="text-center py-4">
+              <Button 
+                onClick={() => setCurrentView('chat-history')}
+                className="w-full"
+              >
+                <History className="w-4 h-4 mr-2" />
+                View All Chat History
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
