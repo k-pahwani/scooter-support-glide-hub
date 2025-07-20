@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Edit, Trash2, Save, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -214,28 +215,31 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
               <p className="text-xs opacity-90">Manage FAQ Database</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAddForm(true)}
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
+          <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-md mx-auto p-4 space-y-4">
-        {/* Add/Edit Form */}
-        {showAddForm && (
-          <Card className="border-primary">
-            <CardHeader>
-              <CardTitle className="text-sm">
+        {/* Modal for Add/Edit Form */}
+        <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
                 {editingId ? 'Edit Question' : 'Add New Question'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Question</label>
                 <Input
@@ -263,9 +267,9 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
                   Cancel
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Questions List */}
         <div className="space-y-3">
