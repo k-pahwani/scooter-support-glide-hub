@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +39,17 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   const { toast } = useToast();
 
   const QUESTIONS_PER_PAGE = 20;
+
+  // Available categories
+  const categories = [
+    'General',
+    'Technical',
+    'Billing',
+    'Support',
+    'Account',
+    'Product',
+    'Security'
+  ];
 
   // Form state for domain questions
   const [formData, setFormData] = useState({
@@ -247,6 +259,9 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
               <DialogTitle>
                 {editingId ? 'Edit Question' : 'Add New Question'}
               </DialogTitle>
+              <DialogDescription>
+                {editingId ? 'Update the question details below.' : 'Fill in the details to create a new predefined question.'}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -267,11 +282,21 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
               </div>
               <div>
                 <label className="text-sm font-medium">Category</label>
-                <Input
+                <Select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Category (e.g., General, Technical)..."
-                />
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex space-x-2">
                 <Button onClick={handleSave} size="sm" className="flex-1">
