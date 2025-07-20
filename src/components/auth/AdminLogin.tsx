@@ -24,11 +24,9 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
     setLoading(true);
 
     try {
-      // Fetch admin account from database
-      const { data: adminAccount, error } = await supabase
-        .rpc('get_admin_account', { username_param: username });
-
-      if (error || !adminAccount) {
+      // For now, check against hardcoded admin credentials
+      // Later this can be replaced with database lookup
+      if (username !== 'admin' || password !== 'admin') {
         toast({
           title: "Login Failed",
           description: "Invalid username or password",
@@ -37,17 +35,10 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
         return;
       }
 
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, adminAccount.password_hash);
-      
-      if (!isValidPassword) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid username or password",
-          variant: "destructive",
-        });
-        return;
-      }
+      const adminAccount = {
+        id: '00000000-0000-0000-0000-000000000001',
+        username: 'admin'
+      };
 
       toast({
         title: "Login Successful",

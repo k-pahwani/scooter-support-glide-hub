@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Phone, ArrowRight, Shield } from "lucide-react";
+import { Phone, ArrowRight, Shield, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -115,6 +115,17 @@ const OTPLogin = ({ onLoginSuccess, onBack }: OTPLoginProps) => {
 
         <Card>
           <CardHeader className="space-y-1">
+            {onBack && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onBack}
+                className="self-start mb-4"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            )}
             <CardTitle className="text-xl text-center">
               {step === 'phone' ? 'Enter Mobile Number' : 'Verify OTP'}
             </CardTitle>

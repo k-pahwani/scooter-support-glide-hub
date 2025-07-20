@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import OTPLogin from "@/components/auth/OTPLogin";
+import { AdminLogin } from "@/components/auth/AdminLogin";
+import { LoginSelection } from "@/components/auth/LoginSelection";
 import ChatWindow from "@/components/ChatWindow";
 import SubmittedQueries from "@/components/SubmittedQueries";
 import ChatHistory from "@/components/ChatHistory";
@@ -26,6 +28,11 @@ const Index = () => {
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
     // Auth state is automatically updated via the AuthProvider
+  };
+
+  const handleAdminLoginSuccess = (adminData: { id: string; username: string }) => {
+    adminLogin(adminData);
+    setShowAdmin(true); // Show admin panel immediately after admin login
   };
 
   // Fetch recent questions from database
