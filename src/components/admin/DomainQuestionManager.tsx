@@ -128,21 +128,10 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
           .eq('id', editingId);
         error = updateError;
       } else {
-        // Use a direct API call with service role permissions for admin operations
-        const response = await fetch('https://ovjovvrtuyxjkjavcfws.supabase.co/rest/v1/domain_questions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92am92dnJ0dXl4amtqYXZjZndzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjc3Njc3NSwiZXhwIjoyMDY4MzUyNzc1fQ.lJoxt1P2AE2fMQVV8VJdqYMvN_xADFbk-yuwC9x5qpQ',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92am92dnJ0dXl4amtqYXZjZndzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjc3Njc3NSwiZXhwIjoyMDY4MzUyNzc1fQ.lJoxt1P2AE2fMQVV8VJdqYMvN_xADFbk-yuwC9x5qpQ'
-          },
-          body: JSON.stringify(questionData)
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to insert question');
-        }
+        const { error: insertError } = await supabase
+          .from('domain_questions')
+          .insert([questionData]);
+        error = insertError;
       }
 
       if (error) throw error;
