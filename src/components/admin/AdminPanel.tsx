@@ -1,19 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, List, ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { Settings, Plus, List, ArrowLeft } from 'lucide-react';
 import DomainQuestionManager from './DomainQuestionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface DomainQuestion {
+interface PredefinedMessage {
   id: string;
-  question: string;
-  answer: string;
-  category: string;
-  keywords: string[];
-  is_active: boolean;
+  content: string;
   created_at: string;
+  user_id: string;
+  session_id: string;
+  type: string;
 }
 
 interface AdminPanelProps {
@@ -24,32 +24,32 @@ type AdminView = 'main' | 'questions';
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [currentView, setCurrentView] = useState<AdminView>('main');
-  const [questions, setQuestions] = useState<DomainQuestion[]>([]);
+  const [questions, setQuestions] = useState<PredefinedMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     if (currentView === 'main') {
-      fetchQuestions();
+      fetchPredefinedQuestions();
     }
   }, [currentView]);
 
-  const fetchQuestions = async () => {
+  const fetchPredefinedQuestions = async () => {
     try {
       const { data, error } = await supabase
-        .from('domain_questions')
+        .from('chat_messages')
         .select('*')
-        .eq('is_active', true)
+        .eq('type', 'predefined')
         .order('created_at', { ascending: false })
         .limit(10); // Show first 10 questions
 
       if (error) throw error;
       setQuestions(data || []);
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error('Error fetching predefined questions:', error);
       toast({
         title: "Error",
-        description: "Failed to load questions",
+        description: "Failed to load predefined questions",
         variant: "destructive"
       });
     } finally {
@@ -96,13 +96,13 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <List className="w-5 h-5" />
-                <span>Domain Questions</span>
+                <span>Predefined Questions</span>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Manage domain-specific questions and answers for the support system.
+              Manage predefined questions that users can select for quick support.
             </p>
             
             {loading ? (
@@ -112,7 +112,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               </div>
             ) : questions.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-sm text-muted-foreground mb-3">No questions added yet</p>
+                <p className="text-sm text-muted-foreground mb-3">No predefined questions added yet</p>
                 <Button 
                   onClick={() => setCurrentView('questions')}
                   size="sm"
@@ -130,10 +130,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                   <div key={question.id} className="p-3 border rounded-lg bg-muted/30">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{question.question}</p>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {question.answer}
-                        </p>
+                        <p className="text-sm font-medium">{question.content}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Added {new Date(question.created_at).toLocaleDateString()}
                         </p>
