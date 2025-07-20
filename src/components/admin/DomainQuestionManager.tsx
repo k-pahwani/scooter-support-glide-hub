@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Save, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface DomainQuestion {
   id: string;
@@ -28,27 +29,41 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Form state
+  const QUESTIONS_PER_PAGE = 20;
+
+  // Form state - simplified to only question and answer
   const [formData, setFormData] = useState({
     question: '',
-    answer: '',
-    category: '',
-    keywords: ''
+    answer: ''
   });
 
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [currentPage]);
 
   const fetchQuestions = async () => {
     try {
+      // Get total count
+      const { count } = await supabase
+        .from('domain_questions')
+        .select('*', { count: 'exact', head: true });
+
+      setTotalCount(count || 0);
+
+      // Get paginated data
+      const from = (currentPage - 1) * QUESTIONS_PER_PAGE;
+      const to = from + QUESTIONS_PER_PAGE - 1;
+
       const { data, error } = await supabase
         .from('domain_questions')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       setQuestions(data || []);
@@ -75,16 +90,11 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
     }
 
     try {
-      const keywordsArray = formData.keywords
-        .split(',')
-        .map(k => k.trim())
-        .filter(k => k.length > 0);
-
       const questionData = {
         question: formData.question.trim(),
         answer: formData.answer.trim(),
-        category: formData.category.trim() || 'General',
-        keywords: keywordsArray,
+        category: 'General', // Default category
+        keywords: [], // Default empty keywords
         created_by: user.id,
         is_active: true
       };
@@ -110,9 +120,10 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
         description: editingId ? "Question updated successfully" : "Question added successfully"
       });
 
-      setFormData({ question: '', answer: '', category: '', keywords: '' });
+      setFormData({ question: '', answer: '' });
       setEditingId(null);
       setShowAddForm(false);
+      setCurrentPage(1); // Reset to first page when adding new question
       fetchQuestions();
     } catch (error) {
       console.error('Error saving question:', error);
@@ -127,9 +138,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   const handleEdit = (question: DomainQuestion) => {
     setFormData({
       question: question.question,
-      answer: question.answer,
-      category: question.category,
-      keywords: question.keywords.join(', ')
+      answer: question.answer
     });
     setEditingId(question.id);
     setShowAddForm(true);
@@ -163,9 +172,16 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   };
 
   const handleCancel = () => {
-    setFormData({ question: '', answer: '', category: '', keywords: '' });
+    setFormData({ question: '', answer: '' });
     setEditingId(null);
     setShowAddForm(false);
+  };
+
+  const totalPages = Math.ceil(totalCount / QUESTIONS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setLoading(true);
   };
 
   if (loading) {
@@ -237,22 +253,6 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
                   rows={3}
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium">Category</label>
-                <Input
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="e.g., Battery, Performance, Safety"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Keywords (comma-separated)</label>
-                <Input
-                  value={formData.keywords}
-                  onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
-                  placeholder="battery, charge, range, power"
-                />
-              </div>
               <div className="flex space-x-2">
                 <Button onClick={handleSave} size="sm" className="flex-1">
                   <Save className="w-4 h-4 mr-2" />
@@ -273,12 +273,14 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-sm text-muted-foreground mb-4">
-                  No domain questions added yet
+                  {totalCount === 0 ? "No domain questions added yet" : "No questions on this page"}
                 </p>
-                <Button onClick={() => setShowAddForm(true)} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add First Question
-                </Button>
+                {totalCount === 0 && (
+                  <Button onClick={() => setShowAddForm(true)} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Question
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
@@ -288,10 +290,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                          {question.category}
-                        </span>
-                        <h3 className="font-medium text-sm mt-1">{question.question}</h3>
+                        <h3 className="font-medium text-sm">{question.question}</h3>
                       </div>
                       <div className="flex space-x-1">
                         <Button
@@ -314,29 +313,54 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
                     <p className="text-xs text-muted-foreground line-clamp-2">
                       {question.answer}
                     </p>
-                    {question.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {question.keywords.slice(0, 3).map((keyword, index) => (
-                          <span
-                            key={index}
-                            className="text-xs bg-accent px-2 py-1 rounded"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                        {question.keywords.length > 3 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{question.keywords.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Added {new Date(question.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => handlePageChange(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+            
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              Showing {((currentPage - 1) * QUESTIONS_PER_PAGE) + 1} to {Math.min(currentPage * QUESTIONS_PER_PAGE, totalCount)} of {totalCount} questions
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );
