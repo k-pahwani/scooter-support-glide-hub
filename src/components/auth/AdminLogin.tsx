@@ -21,38 +21,32 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
-      const response = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-  
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-  
-      if (response.data?.user) {
+
+      if (error) throw error;
+
+      if (data.user) {
         toast({
           title: "Login successful",
           description: "Welcome to the admin panel",
         });
         onLoginSuccess();
-      } else {
-        throw new Error("Login failed. No user data returned.");
       }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Invalid credentials";
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: message,
+        description: error.message || "Invalid credentials",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
