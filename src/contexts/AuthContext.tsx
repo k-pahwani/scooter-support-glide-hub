@@ -57,12 +57,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener for regular users
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (session && !adminData) {
+        // Use current adminData state within the callback to avoid dependency issues
+        const currentAdminData = localStorage.getItem('adminData');
+        if (session && !currentAdminData) {
           setSession(session);
           setUser(session?.user ?? null);
           setAuthType('user');
           setIsAuthenticated(!!session);
-        } else if (!session && !adminData) {
+        } else if (!session && !currentAdminData) {
           setSession(null);
           setUser(null);
           setAuthType(null);
@@ -72,7 +74,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     // Get initial session for regular users
-    if (!adminData) {
+    const currentAdminData = localStorage.getItem('adminData');
+    if (!currentAdminData) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setSession(session);
         setUser(session?.user ?? null);
@@ -82,7 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     return () => subscription.unsubscribe();
-  }, [adminData]);
+  }, []); // Remove adminData dependency to prevent infinite loop
 
   const login = (phone: string) => {
     // Login is handled by the OTP verification in the OTPLogin component
