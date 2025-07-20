@@ -91,16 +91,22 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
   }, [user?.id, providedSessionId]);
 
   const loadMessages = async () => {
-    if (!user?.id) return;
+    if (!user?.id && !isHistoryView) return;
 
     try {
       const currentSessionId = providedSessionId || sessionId;
-      const { data, error } = await supabase
+      let query = supabase
         .from('chat_messages')
         .select('*')
-        .eq('user_id', user.id)
         .eq('session_id', currentSessionId)
         .order('created_at', { ascending: true });
+
+      // Only filter by user_id if not in history view (admin view should see all messages)
+      if (!isHistoryView && user?.id) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
