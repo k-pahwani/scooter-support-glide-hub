@@ -39,6 +39,7 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
         onLoginSuccess();
       }
     } catch (error: any) {
+      console.log("Supabase response:", { error });
       toast({
         title: "Login failed",
         description: error.message || "Invalid credentials",
