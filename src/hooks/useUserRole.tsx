@@ -23,36 +23,43 @@ export const useUserRole = () => {
       return;
     }
 
-    // Handle user authentication
-    if (!user) {
-      setRole(null);
-      setLoading(false);
+    // Handle user authentication - only fetch if we have a user
+    if (authType === 'user' && user) {
+      const fetchUserRole = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error fetching user role:', error);
+            setRole('user'); // Default to user role
+          } else {
+            setRole(data?.role || 'user');
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          setRole('user');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchUserRole();
       return;
     }
 
-    const fetchUserRole = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
+    // If we don't have user data yet but are in user auth type, keep loading
+    if (authType === 'user' && !user) {
+      return;
+    }
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching user role:', error);
-          setRole('user'); // Default to user role
-        } else {
-          setRole(data?.role || 'user');
-        }
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-        setRole('user');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Default case
+    setRole(null);
+    setLoading(false);
 
-    fetchUserRole();
   }, [isAuthenticated, user, authType, adminData]);
 
   const isAdmin = role === 'admin';
