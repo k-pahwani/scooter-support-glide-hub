@@ -5,16 +5,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Shield } from 'lucide-react';
-import bcrypt from 'bcryptjs';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AdminLoginProps {
-  onLoginSuccess: (adminData: { id: string; username: string }) => void;
+  onLoginSuccess: () => void;
   onBack: () => void;
 }
 
 export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -24,37 +23,24 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
     setLoading(true);
 
     try {
-      // For now, check against hardcoded admin credentials
-      // Later this can be replaced with database lookup
-      if (username !== 'admin' || password !== 'admin') {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
         toast({
-          title: "Login Failed",
-          description: "Invalid username or password",
-          variant: "destructive",
+          title: "Login successful",
+          description: "Welcome to the admin panel",
         });
-        return;
+        onLoginSuccess();
       }
-
-      const adminAccount = {
-        id: '00000000-0000-0000-0000-000000000001',
-        username: 'admin'
-      };
-
+    } catch (error: any) {
       toast({
-        title: "Login Successful",
-        description: "Welcome back, admin!",
-      });
-
-      onLoginSuccess({
-        id: adminAccount.id,
-        username: adminAccount.username
-      });
-
-    } catch (error) {
-      console.error('Admin login error:', error);
-      toast({
-        title: "Login Error",
-        description: "An error occurred during login",
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
         variant: "destructive",
       });
     } finally {
@@ -84,13 +70,13 @@ export const AdminLogin = ({ onLoginSuccess, onBack }: AdminLoginProps) => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
                 required
                 disabled={loading}
               />

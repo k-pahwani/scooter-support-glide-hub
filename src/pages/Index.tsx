@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const { isAuthenticated, user, login, logout, adminLogin } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const { isAdmin } = useUserRole();
   const [showChat, setShowChat] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
@@ -30,8 +30,7 @@ const Index = () => {
     // Auth state is automatically updated via the AuthProvider
   };
 
-  const handleAdminLoginSuccess = (adminData: { id: string; username: string }) => {
-    adminLogin(adminData);
+  const handleAdminLoginSuccess = () => {
     setShowAdmin(true); // Show admin panel immediately after admin login
   };
 
