@@ -1,20 +1,24 @@
-import { Phone, MessageCircle, Mail, Search, LogOut, HelpCircle } from "lucide-react";
+import { Phone, MessageCircle, Mail, Search, LogOut, HelpCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import OTPLogin from "@/components/auth/OTPLogin";
 import ChatWindow from "@/components/ChatWindow";
 import SubmittedQueries from "@/components/SubmittedQueries";
 import ChatHistory from "@/components/ChatHistory";
+import AdminPanel from "@/components/admin/AdminPanel";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { isAuthenticated, user, login, logout } = useAuth();
+  const { isAdmin } = useUserRole();
   const [showChat, setShowChat] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [initialQuestion, setInitialQuestion] = useState<string>("");
 
@@ -113,6 +117,10 @@ const Index = () => {
     return <SubmittedQueries onClose={() => setShowSubmissions(false)} />;
   }
 
+  if (showAdmin) {
+    return <AdminPanel onClose={() => setShowAdmin(false)} />;
+  }
+
   const supportOptions = [
     {
       icon: MessageCircle,
@@ -152,6 +160,16 @@ const Index = () => {
               <p className="text-xs opacity-90">Welcome</p>
               <p className="text-sm font-medium">{user?.phone || user?.email}</p>
             </div>
+            {isAdmin && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowAdmin(true)}
+                className="text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
             <Button 
               variant="ghost" 
               size="sm" 

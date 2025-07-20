@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Upload, MessageCircle, Battery, Zap, Settings, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FAQ {
   id: string;
@@ -77,18 +78,53 @@ const predefinedFAQs: FAQ[] = [
 const QuestionAnswer = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [allFAQs, setAllFAQs] = useState<FAQ[]>(predefinedFAQs);
   const [filteredFAQs, setFilteredFAQs] = useState<FAQ[]>(predefinedFAQs);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Fetch domain questions from database
+  useEffect(() => {
+    fetchDomainQuestions();
+  }, []);
+
+  const fetchDomainQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('domain_questions')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Convert domain questions to FAQ format
+      const domainFAQs: FAQ[] = (data || []).map(q => ({
+        id: q.id,
+        category: q.category,
+        question: q.question,
+        answer: q.answer,
+        keywords: q.keywords || []
+      }));
+
+      // Combine predefined FAQs with domain questions
+      const combinedFAQs = [...predefinedFAQs, ...domainFAQs];
+      setAllFAQs(combinedFAQs);
+      setFilteredFAQs(combinedFAQs);
+    } catch (error) {
+      console.error('Error fetching domain questions:', error);
+      // Continue with predefined FAQs only
+    }
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (!query.trim()) {
-      setFilteredFAQs(predefinedFAQs);
+      setFilteredFAQs(allFAQs);
       return;
     }
 
-    const filtered = predefinedFAQs.filter(faq => 
+    const filtered = allFAQs.filter(faq => 
       faq.question.toLowerCase().includes(query.toLowerCase()) ||
       faq.answer.toLowerCase().includes(query.toLowerCase()) ||
       faq.keywords.some(keyword => keyword.toLowerCase().includes(query.toLowerCase())) ||
@@ -140,7 +176,7 @@ const QuestionAnswer = () => {
     }
   };
 
-  const categories = [...new Set(predefinedFAQs.map(faq => faq.category))];
+  const categories = [...new Set(allFAQs.map(faq => faq.category))];
 
   return (
     <div className="space-y-6">
@@ -202,7 +238,7 @@ const QuestionAnswer = () => {
           size="sm"
           onClick={() => {
             setSearchQuery("");
-            setFilteredFAQs(predefinedFAQs);
+            setFilteredFAQs(allFAQs);
           }}
         >
           All Categories
