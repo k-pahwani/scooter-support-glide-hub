@@ -98,6 +98,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   };
 
   const handleSave = async () => {
+    console.lof("User:", {user});
     if (!user || !formData.question.trim() || !formData.answer.trim()) {
       toast({
         title: "Validation Error",
