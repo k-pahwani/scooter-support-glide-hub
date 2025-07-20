@@ -38,7 +38,6 @@ const AdminChatHistory = ({ onBack, onClose }: AdminChatHistoryProps) => {
       const { data, error } = await supabase
         .from('chat_messages')
         .select('session_id, user_id, content, created_at')
-        .eq('type', 'user')
         .order('created_at', { ascending: false });
 
       if (error) {
