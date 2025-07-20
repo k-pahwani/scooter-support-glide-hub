@@ -10,13 +10,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
-interface PredefinedMessage {
+interface DomainQuestion {
   id: string;
-  content: string;
+  question: string;
+  answer: string;
+  category: string;
   created_at: string;
-  user_id: string;
-  session_id: string;
-  type: string;
+  updated_at: string;
+  is_active: boolean;
+  keywords: string[] | null;
+  created_by: string;
 }
 
 interface DomainQuestionManagerProps {
@@ -25,7 +28,7 @@ interface DomainQuestionManagerProps {
 }
 
 const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) => {
-  const [questions, setQuestions] = useState<PredefinedMessage[]>([]);
+  const [questions, setQuestions] = useState<DomainQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -36,9 +39,11 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
 
   const QUESTIONS_PER_PAGE = 20;
 
-  // Form state - simplified to only question content
+  // Form state for domain questions
   const [formData, setFormData] = useState({
-    content: ''
+    question: '',
+    answer: '',
+    category: 'General'
   });
 
   useEffect(() => {
@@ -49,9 +54,9 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
     try {
       // Get total count
       const { count } = await supabase
-        .from('chat_messages')
+        .from('domain_questions')
         .select('*', { count: 'exact', head: true })
-        .eq('type', 'predefined');
+        .eq('is_active', true);
 
       setTotalCount(count || 0);
 
@@ -60,19 +65,19 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
       const to = from + QUESTIONS_PER_PAGE - 1;
 
       const { data, error } = await supabase
-        .from('chat_messages')
+        .from('domain_questions')
         .select('*')
-        .eq('type', 'predefined')
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
         .range(from, to);
 
       if (error) throw error;
       setQuestions(data || []);
     } catch (error) {
-      console.error('Error fetching predefined questions:', error);
+      console.error('Error fetching domain questions:', error);
       toast({
         title: "Error",
-        description: "Failed to load predefined questions",
+        description: "Failed to load domain questions",
         variant: "destructive"
       });
     } finally {
@@ -81,34 +86,39 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   };
 
   const handleSave = async () => {
-    if (!user || !formData.content.trim()) {
+    if (!user || !formData.question.trim() || !formData.answer.trim()) {
       toast({
         title: "Validation Error",
-        description: "Question content is required",
+        description: "Question and answer are required",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      const messageData = {
-        content: formData.content.trim(),
-        type: 'predefined',
-        user_id: user.id,
-        session_id: crypto.randomUUID() // Generate a new session ID
+      const questionData = {
+        question: formData.question.trim(),
+        answer: formData.answer.trim(),
+        category: formData.category,
+        created_by: user.id
       };
 
       let error;
       if (editingId) {
         const { error: updateError } = await supabase
-          .from('chat_messages')
-          .update({ content: messageData.content })
+          .from('domain_questions')
+          .update({ 
+            question: questionData.question,
+            answer: questionData.answer,
+            category: questionData.category,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', editingId);
         error = updateError;
       } else {
         const { error: insertError } = await supabase
-          .from('chat_messages')
-          .insert([messageData]);
+          .from('domain_questions')
+          .insert([questionData]);
         error = insertError;
       }
 
@@ -119,7 +129,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
         description: editingId ? "Question updated successfully" : "Question added successfully"
       });
 
-      setFormData({ content: '' });
+      setFormData({ question: '', answer: '', category: 'General' });
       setEditingId(null);
       setShowAddForm(false);
       setCurrentPage(1); // Reset to first page when adding new question
@@ -134,9 +144,11 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
     }
   };
 
-  const handleEdit = (question: PredefinedMessage) => {
+  const handleEdit = (question: DomainQuestion) => {
     setFormData({
-      content: question.content
+      question: question.question,
+      answer: question.answer,
+      category: question.category
     });
     setEditingId(question.id);
     setShowAddForm(true);
@@ -147,8 +159,8 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
 
     try {
       const { error } = await supabase
-        .from('chat_messages')
-        .delete()
+        .from('domain_questions')
+        .update({ is_active: false })
         .eq('id', id);
 
       if (error) throw error;
@@ -170,7 +182,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   };
 
   const handleCancel = () => {
-    setFormData({ content: '' });
+    setFormData({ question: '', answer: '', category: 'General' });
     setEditingId(null);
     setShowAddForm(false);
   };
@@ -240,9 +252,25 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
               <div>
                 <label className="text-sm font-medium">Question</label>
                 <Input
-                  value={formData.content}
-                  onChange={(e) => setFormData({ content: e.target.value })}
-                  placeholder="Enter the predefined question..."
+                  value={formData.question}
+                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  placeholder="Enter the question..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Answer</label>
+                <Input
+                  value={formData.answer}
+                  onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
+                  placeholder="Enter the answer..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Category</label>
+                <Input
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="Category (e.g., General, Technical)..."
                 />
               </div>
               <div className="flex space-x-2">
@@ -282,7 +310,9 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-medium text-sm">{question.content}</h3>
+                        <h3 className="font-medium text-sm">{question.question}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{question.answer}</p>
+                        <span className="inline-block bg-muted px-2 py-1 rounded-md text-xs mt-2">{question.category}</span>
                       </div>
                       <div className="flex space-x-1">
                         <Button

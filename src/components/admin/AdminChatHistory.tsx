@@ -41,7 +41,12 @@ const AdminChatHistory = ({ onBack, onClose }: AdminChatHistoryProps) => {
         .eq('type', 'user')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching chat sessions:', error);
+        throw error;
+      }
+
+      console.log('Fetched chat data:', data);
 
       // Group by session and get first message of each session
       const sessionMap = new Map<string, ChatSession>();
