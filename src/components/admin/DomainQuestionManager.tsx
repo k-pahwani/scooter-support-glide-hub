@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Edit, Trash2, Save, X } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -35,7 +35,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   const [showAddForm, setShowAddForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const { user } = useAuth();
+  const { adminUser } = useAdminAuth();
   const { toast } = useToast();
 
   const QUESTIONS_PER_PAGE = 20;
@@ -98,8 +98,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
   };
 
   const handleSave = async () => {
-    console.info("User:", {user});
-    if (!user || !formData.question.trim() || !formData.answer.trim()) {
+    if (!adminUser || !formData.question.trim() || !formData.answer.trim()) {
       toast({
         title: "Validation Error",
         description: "Question and answer are required",
@@ -113,7 +112,7 @@ const DomainQuestionManager = ({ onBack, onClose }: DomainQuestionManagerProps) 
         question: formData.question.trim(),
         answer: formData.answer.trim(),
         category: formData.category,
-        created_by: user.id
+        created_by: adminUser.id
       };
 
       let error;
