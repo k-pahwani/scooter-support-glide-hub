@@ -47,14 +47,6 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
       <header className="bg-primary text-primary-foreground p-4 shadow-sm">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
             <div>
               <h1 className="text-lg font-bold">Admin Panel</h1>
               <p className="text-xs opacity-90">System Management</p>

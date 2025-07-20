@@ -139,14 +139,6 @@ const AdminChatHistory = ({ onBack, onClose }: AdminChatHistoryProps) => {
               <p className="text-xs opacity-90">Admin view - All user conversations</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-          >
-            ✕
-          </Button>
         </div>
       </header>
 
