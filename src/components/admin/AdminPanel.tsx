@@ -57,53 +57,34 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Admin Dashboard */}
       <main className="max-w-md mx-auto p-4 space-y-6">
         <div className="text-center mb-8">
           <h2 className="text-xl font-semibold text-foreground mb-2">Admin Dashboard</h2>
           <p className="text-sm text-muted-foreground">
-            Choose an option to manage the support system
+            System overview and quick actions
           </p>
         </div>
 
-        <div className="space-y-4">
-          {/* Manage Predefined Questions */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow group">
-            <CardContent 
-              className="p-6 text-center"
-              onClick={() => setCurrentView('questions')}
-            >
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <List className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Manage Predefined Questions</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Add, edit, and organize predefined questions for user support
-              </p>
-              <Button variant="outline" className="w-full">
-                Manage Questions
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* View User Chat History */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow group">
-            <CardContent 
-              className="p-6 text-center"
-              onClick={() => setCurrentView('chat-history')}
-            >
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <MessageCircle className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">View User Chat History</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Monitor and review all user conversations and support interactions
-              </p>
-              <Button variant="outline" className="w-full">
-                View Chat History
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            variant="outline"
+            className="h-20 flex-col space-y-2"
+            onClick={() => setCurrentView('questions')}
+          >
+            <List className="w-5 h-5" />
+            <span className="text-xs">Questions</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="h-20 flex-col space-y-2"
+            onClick={() => setCurrentView('chat-history')}
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-xs">Chat History</span>
+          </Button>
         </div>
       </main>
     </div>
