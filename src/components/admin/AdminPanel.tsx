@@ -46,7 +46,6 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               onClick={onClose}
               className="text-primary-foreground hover:bg-primary-foreground/10"
             >
-              <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
               <h1 className="text-lg font-bold">Admin Panel</h1>
