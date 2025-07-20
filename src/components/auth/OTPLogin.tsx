@@ -11,9 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface OTPLoginProps {
   onLoginSuccess: () => void;
+  onBack?: () => void;
 }
 
-const OTPLogin = ({ onLoginSuccess }: OTPLoginProps) => {
+const OTPLogin = ({ onLoginSuccess, onBack }: OTPLoginProps) => {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');

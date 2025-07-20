@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const { isAuthenticated, user, login, logout } = useAuth();
+  const { isAuthenticated, user, login, logout, adminLogin } = useAuth();
   const { isAdmin } = useUserRole();
   const [showChat, setShowChat] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
@@ -21,6 +21,7 @@ const Index = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [initialQuestion, setInitialQuestion] = useState<string>("");
+  const [loginType, setLoginType] = useState<'selection' | 'user' | 'admin'>('selection');
 
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
@@ -90,7 +91,32 @@ const Index = () => {
   };
 
   if (!isAuthenticated) {
-    return <OTPLogin onLoginSuccess={handleLoginSuccess} />;
+    if (loginType === 'selection') {
+      return (
+        <LoginSelection
+          onSelectUserLogin={() => setLoginType('user')}
+          onSelectAdminLogin={() => setLoginType('admin')}
+        />
+      );
+    }
+    
+    if (loginType === 'user') {
+      return (
+        <OTPLogin 
+          onLoginSuccess={handleLoginSuccess}
+          onBack={() => setLoginType('selection')}
+        />
+      );
+    }
+    
+    if (loginType === 'admin') {
+      return (
+        <AdminLogin 
+          onLoginSuccess={handleAdminLoginSuccess}
+          onBack={() => setLoginType('selection')}
+        />
+      );
+    }
   }
 
   if (showChat) {

@@ -3,11 +3,19 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface AdminData {
+  id: string;
+  username: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   session: Session | null;
+  adminData: AdminData | null;
+  authType: 'user' | 'admin' | null;
   login: (phone: string) => void;
+  adminLogin: (adminData: AdminData) => void;
   logout: () => void;
 }
 
@@ -29,43 +37,95 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  const [authType, setAuthType] = useState<'user' | 'admin' | null>(null);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Check for existing admin session
+    const savedAdminData = localStorage.getItem('adminData');
+    if (savedAdminData) {
+      const admin = JSON.parse(savedAdminData);
+      setAdminData(admin);
+      setAuthType('admin');
+      setIsAuthenticated(true);
+      return;
+    }
+
+    // Set up auth state listener for regular users
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsAuthenticated(!!session);
+        if (session && !adminData) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setAuthType('user');
+          setIsAuthenticated(!!session);
+        } else if (!session && !adminData) {
+          setSession(null);
+          setUser(null);
+          setAuthType(null);
+          setIsAuthenticated(false);
+        }
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAuthenticated(!!session);
-    });
+    // Get initial session for regular users
+    if (!adminData) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setAuthType(session ? 'user' : null);
+        setIsAuthenticated(!!session);
+      });
+    }
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [adminData]);
 
   const login = (phone: string) => {
     // Login is handled by the OTP verification in the OTPLogin component
     // This is kept for backwards compatibility
   };
 
+  const adminLogin = (admin: AdminData) => {
+    setAdminData(admin);
+    setAuthType('admin');
+    setIsAuthenticated(true);
+    // Clear any existing user session
+    setUser(null);
+    setSession(null);
+    // Persist admin session
+    localStorage.setItem('adminData', JSON.stringify(admin));
+  };
+
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (authType === 'admin') {
+        // Admin logout
+        setAdminData(null);
+        setAuthType(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('adminData');
+      } else {
+        // User logout
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      }
     } catch (error) {
       console.error('Error logging out:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, session, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      session, 
+      adminData, 
+      authType, 
+      login, 
+      adminLogin, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );

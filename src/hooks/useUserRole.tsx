@@ -5,12 +5,26 @@ import { supabase } from '@/integrations/supabase/client';
 export type UserRole = 'admin' | 'user' | null;
 
 export const useUserRole = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, authType, adminData } = useAuth();
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
+      setRole(null);
+      setLoading(false);
+      return;
+    }
+
+    // Handle admin authentication
+    if (authType === 'admin' && adminData) {
+      setRole('admin');
+      setLoading(false);
+      return;
+    }
+
+    // Handle user authentication
+    if (!user) {
       setRole(null);
       setLoading(false);
       return;
@@ -39,7 +53,7 @@ export const useUserRole = () => {
     };
 
     fetchUserRole();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, authType, adminData]);
 
   const isAdmin = role === 'admin';
 
