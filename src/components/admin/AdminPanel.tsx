@@ -75,7 +75,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   };
 
   const handleCreateQuestion = async () => {
-    if (!formData.question || !formData.answer || !formData.category) {
+    if (!formData.question.trim() || !formData.answer.trim() || !formData.category.trim()) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -86,18 +86,38 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
 
     setIsCreating(true);
     try {
+      // Use a robust fallback for created_by - service role policies handle access control
+      const createdBy = user?.id || '00000000-0000-0000-0000-000000000000';
+      
       const { error } = await supabase
         .from('domain_questions')
         .insert({
-          question: formData.question,
-          answer: formData.answer,
-          category: formData.category,
-          keywords: formData.keywords.length > 0 ? formData.keywords : null,
-          created_by: user?.id || '0f2dbedd-e48a-4d75-a7c3-557602ba2dc3',
+          question: formData.question.trim(),
+          answer: formData.answer.trim(),
+          category: formData.category.trim(),
+          keywords: formData.keywords.length > 0 ? formData.keywords.filter(k => k.trim() !== '') : null,
+          created_by: createdBy,
           is_active: true
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating question:', error);
+        // More specific error handling for RLS violations
+        if (error.code === '42501') {
+          toast({
+            title: "Permission Error",
+            description: "Admin access required to create questions",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to create predefined question",
+            variant: "destructive"
+          });
+        }
+        return;
+      }
 
       toast({
         title: "Success",
