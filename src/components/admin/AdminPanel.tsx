@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, List, ArrowLeft, MessageCircle } from 'lucide-react';
+import { List, ArrowLeft, MessageCircle, LogOut } from 'lucide-react';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import DomainQuestionManager from './DomainQuestionManager';
 import AdminChatHistory from './AdminChatHistory';
 
@@ -14,6 +15,12 @@ type AdminView = 'main' | 'questions' | 'chat-history';
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [currentView, setCurrentView] = useState<AdminView>('main');
+  const { logoutAdmin } = useAdminAuth();
+
+  const handleLogout = () => {
+    logoutAdmin();
+    onClose();
+  };
 
 
   if (currentView === 'questions') {
@@ -46,13 +53,22 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               onClick={onClose}
               className="text-primary-foreground hover:bg-primary-foreground/10"
             >
+              <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
               <h1 className="text-lg font-bold">Admin Panel</h1>
               <p className="text-xs opacity-90">System Management</p>
             </div>
           </div>
-          <Settings className="w-6 h-6" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="text-primary-foreground hover:bg-primary-foreground/10 flex items-center space-x-1"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-xs">Logout</span>
+          </Button>
         </div>
       </header>
 
