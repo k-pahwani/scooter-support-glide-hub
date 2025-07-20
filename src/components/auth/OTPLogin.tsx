@@ -82,7 +82,7 @@ const OTPLogin = ({ onLoginSuccess, onBack }: OTPLoginProps) => {
       
       toast({
         title: "Login Successful",
-        description: "Welcome to VoltRide Support!",
+        description: "Welcome to Support Center!",
       });
       onLoginSuccess();
     } catch (error: any) {
@@ -109,8 +109,8 @@ const OTPLogin = ({ onLoginSuccess, onBack }: OTPLoginProps) => {
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
             <span className="text-2xl text-primary-foreground">⚡</span>
           </div>
-          <h1 className="text-2xl font-bold">VoltRide</h1>
-          <p className="text-sm text-muted-foreground">Support Center Login</p>
+          <h1 className="text-2xl font-bold">Support Center</h1>
+          <p className="text-sm text-muted-foreground">User Login</p>
         </div>
 
         <Card>

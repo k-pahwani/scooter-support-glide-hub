@@ -21,7 +21,7 @@ const predefinedFAQs: FAQ[] = [
     id: "battery-1",
     category: "Battery",
     question: "How long does the battery last?",
-    answer: "The VoltRide battery typically lasts 25-40 miles on a single charge, depending on your weight, terrain, and riding style. In eco mode, you can extend the range up to 45 miles.",
+    answer: "The battery typically lasts 25-40 miles on a single charge, depending on your weight, terrain, and riding style. In eco mode, you can extend the range up to 45 miles.",
     keywords: ["battery", "range", "miles", "charge", "last", "duration"]
   },
   {
@@ -35,7 +35,7 @@ const predefinedFAQs: FAQ[] = [
     id: "speed-1",
     category: "Performance",
     question: "What's the maximum speed?",
-    answer: "VoltRide scooters can reach speeds up to 25 mph (40 km/h) in sport mode. You can adjust the speed limit through the mobile app for safer riding.",
+    answer: "Scooters can reach speeds up to 25 mph (40 km/h) in sport mode. You can adjust the speed limit through the mobile app for safer riding.",
     keywords: ["speed", "fast", "mph", "maximum", "limit", "sport", "mode"]
   },
   {
@@ -49,7 +49,7 @@ const predefinedFAQs: FAQ[] = [
     id: "weight-1",
     category: "Specifications",
     question: "What's the weight limit?",
-    answer: "VoltRide scooters can safely support riders up to 265 lbs (120 kg). The scooter itself weighs 28 lbs (12.7 kg) for easy portability.",
+    answer: "Scooters can safely support riders up to 265 lbs (120 kg). The scooter itself weighs 28 lbs (12.7 kg) for easy portability.",
     keywords: ["weight", "limit", "capacity", "heavy", "support", "portable"]
   },
   {

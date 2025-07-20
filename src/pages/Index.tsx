@@ -25,7 +25,7 @@ const Index = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [initialQuestion, setInitialQuestion] = useState<string>("");
-  const [loginType, setLoginType] = useState<'selection' | 'user' | 'admin'>('selection');
+  const [loginType, setLoginType] = useState<'selection' | 'user' | 'admin'>('user');
 
   const handleLoginSuccess = () => {
     // Login is handled by the OTP verification in the OTPLogin component
@@ -122,10 +122,22 @@ const Index = () => {
     
     if (loginType === 'user') {
       return (
-        <OTPLogin 
-          onLoginSuccess={handleLoginSuccess}
-          onBack={() => setLoginType('selection')}
-        />
+        <div className="min-h-screen flex flex-col">
+          <OTPLogin 
+            onLoginSuccess={handleLoginSuccess}
+            onBack={() => setLoginType('selection')}
+          />
+          <div className="p-4 text-center">
+            <Button 
+              variant="link" 
+              size="sm"
+              onClick={() => setLoginType('selection')}
+              className="text-muted-foreground"
+            >
+              Switch to Admin Login
+            </Button>
+          </div>
+        </div>
       );
     }
     
@@ -133,7 +145,7 @@ const Index = () => {
       return (
         <AdminLogin 
           onLoginSuccess={handleAdminLoginSuccess}
-          onBack={() => setLoginType('selection')}
+          onBack={() => setLoginType('user')}
         />
       );
     }
@@ -197,8 +209,8 @@ const Index = () => {
               <span className="text-primary font-bold text-sm">⚡</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold">VoltRide</h1>
-              <p className="text-xs opacity-90">Support Center</p>
+              <h1 className="text-lg font-bold">Support Center</h1>
+              <p className="text-xs opacity-90">Help & FAQ</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -313,7 +325,7 @@ const Index = () => {
             Support available 24/7
           </p>
           <p className="text-xs text-muted-foreground">
-            VoltRide Electric Scooters © 2024
+            Support Center © 2024
           </p>
         </div>
       </main>

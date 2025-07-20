@@ -130,7 +130,7 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
       const welcomeMessage: Message = {
         id: 'welcome',
         type: 'bot',
-        content: "Hi! I'm here to help with your VoltRide scooter questions. Here are our most popular topics:",
+        content: "Hi! I'm here to help with your questions. Here are our most popular topics:",
         timestamp: new Date(),
         session_id: sessionId
       };
@@ -345,7 +345,8 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
   };
 
   const handleCloseChat = () => {
-    if (messages.length > 1) { // Only show feedback if there was actual conversation
+    // Don't show feedback for history view (admin view) or if no actual conversation
+    if (!isHistoryView && messages.length > 1) {
       setShowFeedback(true);
     } else {
       onClose();
@@ -362,8 +363,8 @@ const ChatWindow = ({ onClose, onViewSubmissions, initialQuestion, sessionId: pr
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
         <div>
-          <h2 className="font-semibold">VoltRide Support Chat</h2>
-          <p className="text-xs opacity-90">Ask questions about your scooter</p>
+          <h2 className="font-semibold">Support Chat</h2>
+          <p className="text-xs opacity-90">{isHistoryView ? "Viewing conversation history" : "Ask questions about your scooter"}</p>
         </div>
         <div className="flex items-center space-x-2">
           {onViewSubmissions && (
