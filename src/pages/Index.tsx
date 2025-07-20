@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import OTPLogin from "@/components/auth/OTPLogin";
 import { AdminLogin } from "@/components/auth/AdminLogin";
@@ -16,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const { logoutAdmin, isAdminAuthenticated } = useAdminAuth();
   const { isAdmin } = useUserRole();
   const [showChat, setShowChat] = useState(false);
   const [showSubmissions, setShowSubmissions] = useState(false);
@@ -40,6 +42,15 @@ const Index = () => {
       fetchRecentQuestions();
     }
   }, [isAuthenticated, user]);
+
+  const handleLogout = () => {
+    if (isAdminAuthenticated) {
+      logoutAdmin();
+    }
+    if (isAuthenticated) {
+      logout();
+    }
+  };
 
   const fetchRecentQuestions = async () => {
     if (!user) return;
@@ -96,7 +107,10 @@ const Index = () => {
     setShowChat(true);
   };
 
-  if (!isAuthenticated) {
+  // Check if either regular auth or admin auth is active
+  const isUserLoggedIn = isAuthenticated || isAdminAuthenticated;
+
+  if (!isUserLoggedIn) {
     if (loginType === 'selection') {
       return (
         <LoginSelection
@@ -205,7 +219,7 @@ const Index = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={logout}
+              onClick={handleLogout}
               className="text-primary-foreground hover:bg-primary-foreground/10"
             >
               <LogOut className="w-4 h-4" />

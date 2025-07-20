@@ -1,12 +1,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserRole = 'admin' | 'user' | null;
 
 export const useUserRole = () => {
   const { user, isAuthenticated } = useAuth();
+  const { isAdminAuthenticated } = useAdminAuth();
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,9 +44,10 @@ export const useUserRole = () => {
     };
 
     fetchUserRole();
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, isAdminAuthenticated]);
 
-  const isAdmin = role === 'admin';
+  // If admin is authenticated via username/password, they are admin
+  const isAdmin = isAdminAuthenticated || role === 'admin';
 
-  return { role, isAdmin, loading };
+  return { role: isAdminAuthenticated ? 'admin' : role, isAdmin, loading };
 };
