@@ -98,13 +98,6 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 <List className="w-5 h-5" />
                 <span>Domain Questions</span>
               </div>
-              <Button 
-                onClick={() => setCurrentView('questions')}
-                size="sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Manage Questions
-              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
