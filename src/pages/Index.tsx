@@ -1,4 +1,4 @@
-import { Phone, MessageCircle, Mail, Search, LogOut, HelpCircle, Settings } from "lucide-react";
+import { Phone, MessageCircle, Mail, Search, LogOut, HelpCircle, Settings, ShoppingCart, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,9 @@ import ChatWindow from "@/components/ChatWindow";
 import SubmittedQueries from "@/components/SubmittedQueries";
 import ChatHistory from "@/components/ChatHistory";
 import AdminPanel from "@/components/admin/AdminPanel";
+import ScooterCatalog from "@/components/ScooterCatalog";
+import OrderForm from "@/components/OrderForm";
+import MyOrders from "@/components/MyOrders";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,6 +26,10 @@ const Index = () => {
   const [showSubmissions, setShowSubmissions] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showScooterCatalog, setShowScooterCatalog] = useState(false);
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [showMyOrders, setShowMyOrders] = useState(false);
+  const [selectedScooter, setSelectedScooter] = useState<any>(null);
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [initialQuestion, setInitialQuestion] = useState<string>("");
   const [loginType, setLoginType] = useState<'selection' | 'user' | 'admin'>('user');
@@ -107,6 +114,18 @@ const Index = () => {
     setShowChat(true);
   };
 
+  const handleOrderScooter = (scooter: any) => {
+    setSelectedScooter(scooter);
+    setShowScooterCatalog(false);
+    setShowOrderForm(true);
+  };
+
+  const handleOrderSuccess = () => {
+    setShowOrderForm(false);
+    setSelectedScooter(null);
+    setShowMyOrders(true);
+  };
+
   // Check if either regular auth or admin auth is active
   const isUserLoggedIn = isAuthenticated || isAdminAuthenticated;
 
@@ -182,6 +201,32 @@ const Index = () => {
 
   if (showAdmin) {
     return <AdminPanel onClose={() => setShowAdmin(false)} />;
+  }
+
+  if (showScooterCatalog) {
+    return (
+      <ScooterCatalog 
+        onClose={() => setShowScooterCatalog(false)}
+        onOrderScooter={handleOrderScooter}
+      />
+    );
+  }
+
+  if (showOrderForm && selectedScooter) {
+    return (
+      <OrderForm 
+        scooter={selectedScooter}
+        onClose={() => {
+          setShowOrderForm(false);
+          setSelectedScooter(null);
+        }}
+        onOrderSuccess={handleOrderSuccess}
+      />
+    );
+  }
+
+  if (showMyOrders) {
+    return <MyOrders onClose={() => setShowMyOrders(false)} />;
   }
 
   const supportOptions = [
@@ -269,6 +314,50 @@ const Index = () => {
           </CardContent>
         </Card>
 
+        {/* Scooter Shopping Section */}
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <ShoppingCart className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm text-green-900">Shop Scooters</h3>
+                <p className="text-xs text-green-700">Browse and order electric scooters</p>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={() => setShowScooterCatalog(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Shop Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* My Orders Section */}
+        <Card className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Package className="w-5 h-5 text-orange-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm text-orange-900">My Orders</h3>
+                <p className="text-xs text-orange-700">Track your scooter orders</p>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={() => setShowMyOrders(true)}
+                variant="outline"
+                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+              >
+                View Orders
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Actions */}
         <section>

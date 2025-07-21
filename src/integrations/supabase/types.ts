@@ -149,6 +149,119 @@ export type Database = {
         }
         Relationships: []
       }
+      scooter_orders: {
+        Row: {
+          created_at: string
+          estimated_delivery: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          phone_number: string | null
+          quantity: number
+          scooter_id: string
+          shipping_address: string | null
+          status: string
+          total_amount: number
+          unit_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_delivery?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          phone_number?: string | null
+          quantity?: number
+          scooter_id: string
+          shipping_address?: string | null
+          status?: string
+          total_amount: number
+          unit_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estimated_delivery?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          phone_number?: string | null
+          quantity?: number
+          scooter_id?: string
+          shipping_address?: string | null
+          status?: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scooter_orders_scooter_id_fkey"
+            columns: ["scooter_id"]
+            isOneToOne: false
+            referencedRelation: "scooters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scooters: {
+        Row: {
+          battery_capacity: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          max_load_kg: number | null
+          max_speed: number | null
+          model: string
+          name: string
+          price: number
+          range_km: number | null
+          stock_quantity: number
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          battery_capacity?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          max_load_kg?: number | null
+          max_speed?: number | null
+          model: string
+          name: string
+          price: number
+          range_km?: number | null
+          stock_quantity?: number
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          battery_capacity?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          max_load_kg?: number | null
+          max_speed?: number | null
+          model?: string
+          name?: string
+          price?: number
+          range_km?: number | null
+          stock_quantity?: number
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       submitted_queries: {
         Row: {
           bot_response: string
