@@ -2,16 +2,17 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { List, ArrowLeft, MessageCircle, LogOut } from 'lucide-react';
+import { List, ArrowLeft, MessageCircle, LogOut, Package } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import DomainQuestionManager from './DomainQuestionManager';
 import AdminChatHistory from './AdminChatHistory';
+import AdminOrders from './AdminOrders';
 
 interface AdminPanelProps {
   onClose: () => void;
 }
 
-type AdminView = 'main' | 'questions' | 'chat-history';
+type AdminView = 'main' | 'questions' | 'chat-history' | 'orders';
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [currentView, setCurrentView] = useState<AdminView>('main');
@@ -35,6 +36,15 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   if (currentView === 'chat-history') {
     return (
       <AdminChatHistory 
+        onBack={() => setCurrentView('main')}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (currentView === 'orders') {
+    return (
+      <AdminOrders 
         onBack={() => setCurrentView('main')}
         onClose={onClose}
       />
@@ -74,7 +84,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         </div>
 
         {/* Quick Actions Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Button
             variant="outline"
             className="h-20 flex-col space-y-2"
@@ -91,6 +101,15 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
           >
             <MessageCircle className="w-5 h-5" />
             <span className="text-xs">Chat History</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="h-20 flex-col space-y-2"
+            onClick={() => setCurrentView('orders')}
+          >
+            <Package className="w-5 h-5" />
+            <span className="text-xs">Orders</span>
           </Button>
         </div>
       </main>
