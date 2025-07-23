@@ -238,13 +238,15 @@ const Index = () => {
     },
     {
       icon: Phone,
-      title: "Call Support", 
-      action: "Call Now"
+      title: "Contact Support", 
+      action: "Call Now",
+      onClick: () => window.location.href = '/contact'
     },
     {
       icon: Mail,
       title: "Email Support",
-      action: "Send Email"
+      action: "Send Email",
+      onClick: () => window.location.href = '/contact'
     }
   ];
 
@@ -259,7 +261,7 @@ const Index = () => {
               <span className="text-primary font-bold text-sm">⚡</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold">Support Center</h1>
+              <h1 className="text-lg font-bold">VoltRide</h1>
               <p className="text-xs opacity-90">Help & FAQ</p>
             </div>
           </div>
@@ -407,8 +409,11 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <Button className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-              Call Emergency Line
+            <Button 
+              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => window.location.href = '/contact'}
+            >
+              Contact Support
             </Button>
           </CardContent>
         </Card>
@@ -419,7 +424,7 @@ const Index = () => {
             Support available 24/7
           </p>
           <p className="text-xs text-muted-foreground">
-            Support Center © 2024
+            VoltRide © 2024
           </p>
         </div>
       </main>
